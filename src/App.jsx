@@ -7,6 +7,7 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async () => {
     if (!keyword.trim()) {
@@ -17,6 +18,7 @@ function App() {
     try {
       setIsLoading(true);
       setErrorMessage('');
+      setHasSearched(true);
 
       const results = await searchRemotiveJobs(keyword);
 
@@ -27,6 +29,27 @@ function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const updateJobStatus = (jobId, newStatus) => {
+    setJobs((currentJobs) =>
+      currentJobs.map((job) =>
+        job.id === jobId
+          ? { ...job, status: newStatus }
+          : job
+      )
+    );
+  };
+
+  const handleOpenJob = (job) => {
+    updateJobStatus(job.id, 'seen');
+
+    if (window.electronAPI?.openExternalLink) {
+      window.electronAPI.openExternalLink(job.url);
+      return;
+    }
+
+    window.open(job.url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -77,15 +100,18 @@ function App() {
               <th>Publicado</th>
               <th>Ubicación</th>
               <th>Keyword</th>
-              <th>Link</th>
+              <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
 
           <tbody>
             {jobs.length === 0 ? (
               <tr>
-                <td colSpan="7" className="empty-state">
-                  Todavía no hay resultados. Ingresá una keyword y buscá empleos.
+                <td colSpan="8" className="empty-state">
+                  {hasSearched
+                    ? 'No encontramos ofertas para esa búsqueda. Probá con otra keyword.'
+                    : 'Todavía no hay resultados. Ingresá una keyword y buscá empleos.'}
                 </td>
               </tr>
             ) : (
@@ -97,13 +123,31 @@ function App() {
                   <td>{job.publishedAt}</td>
                   <td>{job.location}</td>
                   <td>{job.keyword}</td>
+
                   <td>
-                    <button
-                      className="link-button"
-                      onClick={() => window.electronAPI.openExternalLink(job.url)}
-                    >
-                      Ver oferta
-                    </button>
+                    <span className={`status-badge status-${job.status}`}>
+                      {getStatusLabel(job.status)}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div className="actions-cell">
+                      <button
+                        type="button"
+                        className="link-button"
+                        onClick={() => handleOpenJob(job)}
+                      >
+                        Ver
+                      </button>
+
+                      <button
+                        type="button"
+                        className="link-button"
+                        onClick={() => updateJobStatus(job.id, 'favorite')}
+                      >
+                        Favorito
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -113,6 +157,16 @@ function App() {
       </section>
     </main>
   );
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    new: 'Nuevo',
+    seen: 'Visto',
+    favorite: 'Favorito',
+  };
+
+  return labels[status] || 'Nuevo';
 }
 
 export default App;

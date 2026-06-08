@@ -27,6 +27,7 @@ export async function searchRemotiveJobs(keyword) {
     category: job.category || '',
     tags: job.tags || [],
     description: job.description || '',
+    status: 'new',
   }));
 
   return normalizedJobs.filter((job) => matchesKeyword(job, cleanKeyword));

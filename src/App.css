@@ -162,3 +162,41 @@ a:hover {
 .link-button:hover {
   text-decoration: underline;
 }
+
+.actions-cell {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.status-new {
+  background: #1e3a8a;
+  color: #bfdbfe;
+}
+
+.status-seen {
+  background: #374151;
+  color: #d1d5db;
+}
+
+.status-favorite {
+  background: #713f12;
+  color: #fde68a;
+}
+
+.status-discarded {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
+.danger-link {
+  color: #f87171;
+}
