@@ -46,24 +46,6 @@ El objetivo del proyecto es construir una herramienta simple de seguimiento labo
 
 ---
 
-## Capturas de pantalla
-
-> Agregar acá capturas reales del proyecto.
-
-### Dashboard principal
-
-![Dashboard principal](docs/screenshots/dashboard.png)
-
-### Resultados de búsqueda
-
-![Resultados de búsqueda](docs/screenshots/results.png)
-
-### Filtros y favoritos
-
-![Filtros y favoritos](docs/screenshots/filters-favorites.png)
-
----
-
 ## Funcionamiento general
 
 El usuario ingresa una palabra clave, por ejemplo:
