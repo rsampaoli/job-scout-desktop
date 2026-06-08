@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 
+const isDev = !app.isPackaged;
+
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -14,9 +16,12 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadURL('http://localhost:5173');
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:5173');
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+  }
 
-  // DevTools.
   // mainWindow.webContents.openDevTools();
 }
 
