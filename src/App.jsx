@@ -2,6 +2,8 @@ import { useState } from 'react';
 import './App.css';
 import { searchRemotiveJobs } from './services/remotiveApi';
 
+const JOB_STATUSES_STORAGE_KEY = 'jobScout.jobStatuses';
+
 function App() {
   const [keyword, setKeyword] = useState('');
   const [jobs, setJobs] = useState([]);
@@ -21,8 +23,14 @@ function App() {
       setHasSearched(true);
 
       const results = await searchRemotiveJobs(keyword);
+      const savedStatuses = getSavedJobStatuses();
 
-      setJobs(results);
+      const resultsWithSavedStatuses = results.map((job) => ({
+        ...job,
+        status: savedStatuses[job.url] || job.status || 'new',
+      }));
+
+      setJobs(resultsWithSavedStatuses);
     } catch (error) {
       console.error(error);
       setErrorMessage('Ocurrió un error al buscar empleos. Revisá tu conexión o intentá nuevamente.');
@@ -31,10 +39,22 @@ function App() {
     }
   };
 
-  const updateJobStatus = (jobId, newStatus) => {
+  const updateJobStatus = (jobUrl, newStatus) => {
+    const savedStatuses = getSavedJobStatuses();
+
+    const updatedStatuses = {
+      ...savedStatuses,
+      [jobUrl]: newStatus,
+    };
+
+    localStorage.setItem(
+      JOB_STATUSES_STORAGE_KEY,
+      JSON.stringify(updatedStatuses)
+    );
+
     setJobs((currentJobs) =>
       currentJobs.map((job) =>
-        job.id === jobId
+        job.url === jobUrl
           ? { ...job, status: newStatus }
           : job
       )
@@ -42,7 +62,7 @@ function App() {
   };
 
   const handleOpenJob = (job) => {
-    updateJobStatus(job.id, 'seen');
+    updateJobStatus(job.url, 'seen');
 
     if (window.electronAPI?.openExternalLink) {
       window.electronAPI.openExternalLink(job.url);
@@ -116,7 +136,7 @@ function App() {
               </tr>
             ) : (
               jobs.map((job) => (
-                <tr key={job.id}>
+                <tr key={job.url}>
                   <td>{job.title}</td>
                   <td>{job.company}</td>
                   <td>{job.source}</td>
@@ -143,7 +163,7 @@ function App() {
                       <button
                         type="button"
                         className="link-button"
-                        onClick={() => updateJobStatus(job.id, 'favorite')}
+                        onClick={() => updateJobStatus(job.url, 'favorite')}
                       >
                         Favorito
                       </button>
@@ -157,6 +177,21 @@ function App() {
       </section>
     </main>
   );
+}
+
+function getSavedJobStatuses() {
+  const savedStatuses = localStorage.getItem(JOB_STATUSES_STORAGE_KEY);
+
+  if (!savedStatuses) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(savedStatuses);
+  } catch (error) {
+    console.error('No se pudieron leer los estados guardados:', error);
+    return {};
+  }
 }
 
 function getStatusLabel(status) {
