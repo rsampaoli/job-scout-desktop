@@ -150,6 +150,7 @@ a:hover {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
 .link-button {
   background: none;
   border: none;
@@ -226,4 +227,99 @@ a:hover {
   background: #38bdf8;
   color: #020617;
   border-color: #38bdf8;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 18px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.stat-card:hover {
+  border-color: #334155;
+}
+
+.stat-label {
+  color: #94a3b8;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: bold;
+}
+
+.stat-value {
+  color: #e5e7eb;
+  font-size: 34px;
+  line-height: 1;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.stat-helper {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.stat-keyword {
+  font-size: 24px;
+  word-break: break-word;
+}
+
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat-card-wide {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 700px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card-wide {
+    grid-column: auto;
+  }
+
+  .search-panel {
+    flex-direction: column;
+  }
+}
+
+.favorite-button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.favorite-button:hover {
+  color: #fde68a;
+}
+
+.favorite-button.is-active {
+  color: #facc15;
+}
+
+.status-favorite {
+  background: #713f12;
+  color: #fde68a;
 }

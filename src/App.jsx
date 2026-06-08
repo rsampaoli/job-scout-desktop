@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './App.css';
 import { searchRemotiveJobs } from './services/remotiveApi';
 
-const JOB_STATUSES_STORAGE_KEY = 'jobScout.jobStatuses';
+const JOB_METADATA_STORAGE_KEY = 'jobScout.jobMetadata';
 
 function App() {
   const [keyword, setKeyword] = useState('');
@@ -24,14 +24,20 @@ function App() {
       setHasSearched(true);
 
       const results = await searchRemotiveJobs(keyword);
-      const savedStatuses = getSavedJobStatuses();
+      const savedMetadata = getSavedJobMetadata();
 
-      const resultsWithSavedStatuses = results.map((job) => ({
-        ...job,
-        status: savedStatuses[job.url] || job.status || 'new',
-      }));
+      const resultsWithSavedMetadata = results.map((job) => {
+        const metadata = savedMetadata[job.url];
 
-      setJobs(resultsWithSavedStatuses);
+        return {
+          ...job,
+          status: metadata?.status || job.status || 'new',
+          isFavorite: metadata?.isFavorite || false,
+        };
+      });
+
+      setJobs(resultsWithSavedMetadata);
+
     } catch (error) {
       console.error(error);
       setErrorMessage('Ocurrió un error al buscar empleos. Revisá tu conexión o intentá nuevamente.');
@@ -40,30 +46,36 @@ function App() {
     }
   };
 
-  const updateJobStatus = (jobUrl, newStatus) => {
-    const savedStatuses = getSavedJobStatuses();
+  const updateJobMetadata = (jobUrl, metadataToUpdate) => {
+    const savedMetadata = getSavedJobMetadata();
+    const currentMetadata = savedMetadata[jobUrl] || {};
 
-    const updatedStatuses = {
-      ...savedStatuses,
-      [jobUrl]: newStatus,
+    const updatedMetadataForJob = {
+      ...currentMetadata,
+      ...metadataToUpdate,
+    };
+
+    const updatedMetadata = {
+      ...savedMetadata,
+      [jobUrl]: updatedMetadataForJob,
     };
 
     localStorage.setItem(
-      JOB_STATUSES_STORAGE_KEY,
-      JSON.stringify(updatedStatuses)
+      JOB_METADATA_STORAGE_KEY,
+      JSON.stringify(updatedMetadata)
     );
 
     setJobs((currentJobs) =>
       currentJobs.map((job) =>
         job.url === jobUrl
-          ? { ...job, status: newStatus }
+          ? { ...job, ...metadataToUpdate }
           : job
       )
     );
   };
 
   const handleOpenJob = (job) => {
-    updateJobStatus(job.url, 'seen');
+    updateJobMetadata(job.url, { status: 'seen' });
 
     if (window.electronAPI?.openExternalLink) {
       window.electronAPI.openExternalLink(job.url);
@@ -73,13 +85,31 @@ function App() {
     window.open(job.url, '_blank', 'noopener,noreferrer');
   };
 
+  const toggleFavorite = (job) => {
+    updateJobMetadata(job.url, {
+      isFavorite: !job.isFavorite,
+    });
+  };
+
   const filteredJobs = jobs.filter((job) => {
     if (activeStatusFilter === 'all') {
       return true;
     }
 
+    if (activeStatusFilter === 'favorite') {
+      return job.isFavorite;
+    }
+
     return job.status === activeStatusFilter;
   });
+
+  const dashboardStats = {
+    total: jobs.length,
+    new: jobs.filter((job) => job.status === 'new').length,
+    seen: jobs.filter((job) => job.status === 'seen').length,
+    favorite: jobs.filter((job) => job.isFavorite === true).length,
+    lastKeyword: hasSearched ? keyword.trim() : '-',
+  };
 
   return (
     <main className="app">
@@ -113,6 +143,32 @@ function App() {
           {errorMessage}
         </section>
       )}
+
+      <section className="stats-grid">
+        <article className="stat-card">
+          <span className="stat-label">Total de ofertas</span>
+          <strong className="stat-value">{dashboardStats.total}</strong>
+          <small className="stat-helper">Resultados de la búsqueda actual</small>
+        </article>
+
+        <article className="stat-card">
+          <span className="stat-label">Vistas</span>
+          <strong className="stat-value">{dashboardStats.seen}</strong>
+          <small className="stat-helper">Ofertas ya revisadas</small>
+        </article>
+
+        <article className="stat-card">
+          <span className="stat-label">Favoritas</span>
+          <strong className="stat-value">{dashboardStats.favorite}</strong>
+          <small className="stat-helper">Guardadas para seguimiento</small>
+        </article>
+
+        <article className="stat-card stat-card-wide">
+          <span className="stat-label">Última búsqueda</span>
+          <strong className="stat-value stat-keyword">{dashboardStats.lastKeyword}</strong>
+          <small className="stat-helper">Keyword utilizada más recientemente</small>
+        </article>
+      </section>
 
       <section className="results-panel">
         <div className="results-header">
@@ -205,10 +261,10 @@ function App() {
 
                       <button
                         type="button"
-                        className="link-button"
-                        onClick={() => updateJobStatus(job.url, 'favorite')}
-                      >
-                        Favorito
+                        className={job.isFavorite ? 'favorite-button is-active' : 'favorite-button'}
+                        onClick={() => toggleFavorite(job)}
+                        title={job.isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}>
+                        {job.isFavorite ? '★' : '☆'}
                       </button>
                     </div>
                   </td>
@@ -222,17 +278,17 @@ function App() {
   );
 }
 
-function getSavedJobStatuses() {
-  const savedStatuses = localStorage.getItem(JOB_STATUSES_STORAGE_KEY);
+function getSavedJobMetadata() {
+  const savedMetadata = localStorage.getItem(JOB_METADATA_STORAGE_KEY);
 
-  if (!savedStatuses) {
+  if (!savedMetadata) {
     return {};
   }
 
   try {
-    return JSON.parse(savedStatuses);
+    return JSON.parse(savedMetadata);
   } catch (error) {
-    console.error('No se pudieron leer los estados guardados:', error);
+    console.error('No se pudieron leer los datos guardados de ofertas:', error);
     return {};
   }
 }
@@ -241,7 +297,6 @@ function getStatusLabel(status) {
   const labels = {
     new: 'Nuevo',
     seen: 'Visto',
-    favorite: 'Favorito',
   };
 
   return labels[status] || 'Nuevo';
