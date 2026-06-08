@@ -200,3 +200,30 @@ a:hover {
 .danger-link {
   color: #f87171;
 }
+
+.status-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.filter-button {
+  background: #020617;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.filter-button:hover {
+  border-color: #38bdf8;
+  color: #e5e7eb;
+}
+
+.filter-button.active {
+  background: #38bdf8;
+  color: #020617;
+  border-color: #38bdf8;
+}

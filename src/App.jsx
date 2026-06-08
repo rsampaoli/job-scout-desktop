@@ -10,6 +10,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+  const [activeStatusFilter, setActiveStatusFilter] = useState('all');
 
   const handleSearch = async () => {
     if (!keyword.trim()) {
@@ -72,6 +73,14 @@ function App() {
     window.open(job.url, '_blank', 'noopener,noreferrer');
   };
 
+  const filteredJobs = jobs.filter((job) => {
+    if (activeStatusFilter === 'all') {
+      return true;
+    }
+
+    return job.status === activeStatusFilter;
+  });
+
   return (
     <main className="app">
       <section className="dashboard-header">
@@ -108,7 +117,43 @@ function App() {
       <section className="results-panel">
         <div className="results-header">
           <h2>Resultados</h2>
-          <span>{jobs.length} ofertas encontradas</span>
+          <span>
+            {filteredJobs.length} de {jobs.length} ofertas
+          </span>
+        </div>
+
+        <div className="status-filters">
+          <button
+            type="button"
+            className={activeStatusFilter === 'all' ? 'filter-button active' : 'filter-button'}
+            onClick={() => setActiveStatusFilter('all')}
+          >
+            Todos
+          </button>
+
+          <button
+            type="button"
+            className={activeStatusFilter === 'new' ? 'filter-button active' : 'filter-button'}
+            onClick={() => setActiveStatusFilter('new')}
+          >
+            Nuevos
+          </button>
+
+          <button
+            type="button"
+            className={activeStatusFilter === 'seen' ? 'filter-button active' : 'filter-button'}
+            onClick={() => setActiveStatusFilter('seen')}
+          >
+            Vistos
+          </button>
+
+          <button
+            type="button"
+            className={activeStatusFilter === 'favorite' ? 'filter-button active' : 'filter-button'}
+            onClick={() => setActiveStatusFilter('favorite')}
+          >
+            Favoritos
+          </button>
         </div>
 
         <table>
@@ -126,16 +171,14 @@ function App() {
           </thead>
 
           <tbody>
-            {jobs.length === 0 ? (
+            {filteredJobs.length === 0 ? (
               <tr>
                 <td colSpan="8" className="empty-state">
-                  {hasSearched
-                    ? 'No encontramos ofertas para esa búsqueda. Probá con otra keyword.'
-                    : 'Todavía no hay resultados. Ingresá una keyword y buscá empleos.'}
+                  {getEmptyStateMessage(hasSearched, jobs.length, activeStatusFilter)}
                 </td>
               </tr>
             ) : (
-              jobs.map((job) => (
+              filteredJobs.map((job) => (
                 <tr key={job.url}>
                   <td>{job.title}</td>
                   <td>{job.company}</td>
@@ -202,6 +245,24 @@ function getStatusLabel(status) {
   };
 
   return labels[status] || 'Nuevo';
+}
+
+function getEmptyStateMessage(hasSearched, totalJobs, activeStatusFilter) {
+  if (!hasSearched) {
+    return 'Todavía no hay resultados. Ingresá una keyword y buscá empleos.';
+  }
+
+  if (totalJobs === 0) {
+    return 'No encontramos ofertas para esa búsqueda. Probá con otra keyword.';
+  }
+
+  const filterLabels = {
+    new: 'nuevas',
+    seen: 'vistas',
+    favorite: 'favoritas',
+  };
+
+  return `No hay ofertas ${filterLabels[activeStatusFilter] || ''} para mostrar.`;
 }
 
 export default App;
