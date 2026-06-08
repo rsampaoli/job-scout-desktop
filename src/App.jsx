@@ -5,6 +5,7 @@ import { searchJobs } from './services/jobSearchService';
 import { EXTERNAL_JOB_SOURCES } from './services/externalJobSources';
 
 const JOB_METADATA_STORAGE_KEY = 'jobScout.jobMetadata';
+const GITHUB_PROFILE_URL = 'https://github.com/rsampaoli';
 
 function App() {
   const [keyword, setKeyword] = useState('');
@@ -74,6 +75,15 @@ function App() {
           : job
       )
     );
+  };
+
+  const handleOpenGithub = () => {
+    if (window.electronAPI?.openExternalLink) {
+      window.electronAPI.openExternalLink(GITHUB_PROFILE_URL);
+      return;
+    }
+
+    window.open(GITHUB_PROFILE_URL, '_blank', 'noopener,noreferrer');
   };
 
   const handleOpenJob = (job) => {
@@ -316,6 +326,17 @@ function App() {
           </tbody>
         </table>
       </section>
+      <footer className="app-footer">
+        <span>Powered by Ramiro Sampaoli</span>
+
+        <button
+          type="button"
+          className="footer-link"
+          onClick={handleOpenGithub}
+        >
+          GitHub
+        </button>
+      </footer>
     </main>
   );
 }
