@@ -21,6 +21,7 @@ export async function searchRemotiveJobs(keyword) {
         company: job.company_name || '',
         source: 'Remotive',
         publishedAt: formatDate(job.publication_date),
+        publishedAtRaw: job.publication_date || '',
         keyword: cleanKeyword,
         url: job.url,
         location: job.candidate_required_location || 'No especificada',

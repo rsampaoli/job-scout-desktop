@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import './App.css';
-import { searchRemotiveJobs } from './services/remotiveApi';
+/* import { searchRemotiveJobs } from './services/remotiveApi'; */
+import { searchJobs } from './services/jobSearchService';
+import { EXTERNAL_JOB_SOURCES } from './services/externalJobSources';
 
 const JOB_METADATA_STORAGE_KEY = 'jobScout.jobMetadata';
 
@@ -23,7 +25,7 @@ function App() {
       setErrorMessage('');
       setHasSearched(true);
 
-      const results = await searchRemotiveJobs(keyword);
+      const results = await searchJobs(keyword);
       const savedMetadata = getSavedJobMetadata();
 
       const resultsWithSavedMetadata = results.map((job) => {
@@ -85,6 +87,24 @@ function App() {
     window.open(job.url, '_blank', 'noopener,noreferrer');
   };
 
+  const handleOpenExternalSearch = (source) => {
+    const cleanKeyword = keyword.trim();
+
+    if (!cleanKeyword) {
+      setErrorMessage('Ingresá una palabra clave antes de abrir una búsqueda externa.');
+      return;
+    }
+
+    const externalUrl = source.buildUrl(cleanKeyword);
+
+    if (window.electronAPI?.openExternalLink) {
+      window.electronAPI.openExternalLink(externalUrl);
+      return;
+    }
+
+    window.open(externalUrl, '_blank', 'noopener,noreferrer');
+  };
+
   const toggleFavorite = (job) => {
     updateJobMetadata(job.url, {
       isFavorite: !job.isFavorite,
@@ -136,6 +156,28 @@ function App() {
         <button onClick={handleSearch} disabled={isLoading}>
           {isLoading ? 'Buscando...' : 'Buscar empleos'}
         </button>
+      </section>
+
+      <section className="external-sources-panel">
+        <div>
+          <h2>Búsquedas externas</h2>
+          <p>
+            Abrí la misma búsqueda en otros portales laborales.
+          </p>
+        </div>
+
+        <div className="external-sources-list">
+          {EXTERNAL_JOB_SOURCES.map((source) => (
+            <button
+              key={source.id}
+              type="button"
+              className="external-source-button"
+              onClick={() => handleOpenExternalSearch(source)}
+            >
+              {source.name}
+            </button>
+          ))}
+        </div>
       </section>
 
       {errorMessage && (

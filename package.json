@@ -6,7 +6,7 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
-    "electron": "wait-on http://localhost:5173 && electron .",
+    "electron": "wait-on http://localhost:5173 && node ./node_modules/electron/cli.js .",
     "start": "concurrently \"npm run dev\" \"npm run electron\"",
     "build": "vite build",
     "preview": "vite preview",
