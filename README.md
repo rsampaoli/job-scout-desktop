@@ -242,19 +242,6 @@ El proyecto cuenta actualmente con:
 
 ---
 
-## Próximas mejoras posibles
-
-* Agregar más fuentes de empleo.
-* Agregar búsqueda externa en LinkedIn, Upwork, Bumeran o Computrabajo.
-* Agregar exportación de resultados a CSV o Excel.
-* Agregar paginación o scroll virtual para grandes cantidades de resultados.
-* Agregar vista de detalle de oferta.
-* Agregar historial de búsquedas.
-* Persistir datos con SQLite en lugar de `localStorage`.
-* Publicar instaladores desde GitHub Releases.
-
----
-
 ## Autor
 
 Proyecto desarrollado por **Ramiro Sampaoli** 
